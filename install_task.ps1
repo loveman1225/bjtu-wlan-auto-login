@@ -2,10 +2,22 @@ $ErrorActionPreference = "Stop"
 
 $taskName = "CampusNetGuard"
 $baseDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$exePath = Join-Path $baseDir "CampusNetGuard.exe"
 $scriptPath = Join-Path $baseDir "campus_net_guard.py"
-$python = (Get-Command python).Source
 
-$action = New-ScheduledTaskAction -Execute $python -Argument "`"$scriptPath`"" -WorkingDirectory $baseDir
+if (Test-Path $exePath) {
+  $execute = $exePath
+  $argument = $null
+} else {
+  $execute = (Get-Command python).Source
+  $argument = "`"$scriptPath`""
+}
+
+if ($null -eq $argument) {
+  $action = New-ScheduledTaskAction -Execute $execute -WorkingDirectory $baseDir
+} else {
+  $action = New-ScheduledTaskAction -Execute $execute -Argument $argument -WorkingDirectory $baseDir
+}
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).Date -RepetitionInterval (New-TimeSpan -Minutes 5)
 $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
@@ -23,4 +35,4 @@ Register-ScheduledTask `
   -Force | Out-Null
 
 Write-Host "Installed scheduled task: $taskName"
-Write-Host "Script: $scriptPath"
+Write-Host "Program: $execute $argument"

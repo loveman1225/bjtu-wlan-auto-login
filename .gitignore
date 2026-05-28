@@ -7,3 +7,7 @@ edge-campus-net-guard-profile/
 __pycache__/
 *.pyc
 a41.js
+CampusNetGuard.exe
+build/
+dist/
+*.spec

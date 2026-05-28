@@ -140,6 +140,20 @@ powershell -ExecutionPolicy Bypass -File .\install_task.ps1
 
 任务名是 `CampusNetGuard`，默认每 5 分钟运行一次。
 
+也可以直接使用主程序参数安装：
+
+```powershell
+python .\campus_net_guard.py --install-task --interval-minutes 5
+```
+
+如果已经打包成 `CampusNetGuard.exe`：
+
+```powershell
+.\CampusNetGuard.exe --install-task --interval-minutes 5
+```
+
+双击安装快捷方式时，本质上也是运行这条 exe 命令。
+
 ## 查看日志
 
 ```powershell
@@ -151,6 +165,40 @@ Get-Content .\campus_net_guard.log -Tail 80
 ```powershell
 .\uninstall_task.ps1
 ```
+
+或：
+
+```powershell
+.\CampusNetGuard.exe --uninstall-task
+```
+
+## 打包成 exe
+
+安装 PyInstaller：
+
+```powershell
+python -m pip install pyinstaller
+```
+
+构建 exe：
+
+```powershell
+.\build_exe.ps1
+```
+
+构建完成后会在项目根目录生成 `CampusNetGuard.exe`。这个 exe 会读取同目录下的 `campus_net_guard_config.json` 和 `campus_net_guard_credentials.json`，所以不要只复制 exe，配置文件也要放在旁边。
+
+生成桌面快捷方式：
+
+```powershell
+.\create_shortcuts.ps1
+```
+
+它会创建三个快捷方式：
+
+- `Campus Net Guard - Enable 5min`: 双击后注册 5 分钟定时任务
+- `Campus Net Guard - Run Once`: 双击后立即运行一次检测
+- `Campus Net Guard - Disable`: 双击后删除定时任务
 
 ## 注意
 

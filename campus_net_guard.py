@@ -18,8 +18,11 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).resolve().parent
 CONFIG_PATH = BASE_DIR / "campus_net_guard_config.json"
 CONFIG_EXAMPLE_PATH = BASE_DIR / "campus_net_guard_config.example.json"
+TASK_NAME = "CampusNetGuard"
 CF_UNICODETEXT = 13
 GMEM_MOVEABLE = 0x0002
 KEYEVENTF_KEYUP = 0x0002
@@ -109,6 +112,71 @@ def save_config(config: dict) -> None:
         json.dumps(config, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
+
+def notify_user(title: str, message: str) -> None:
+    if not getattr(sys, "frozen", False):
+        return
+    try:
+        ctypes.windll.user32.MessageBoxW(None, message, title, 0x40)
+    except Exception:
+        pass
+
+
+def scheduled_task_command() -> str:
+    if getattr(sys, "frozen", False):
+        return f'"{Path(sys.executable).resolve()}"'
+    return f'"{Path(sys.executable).resolve()}" "{Path(__file__).resolve()}"'
+
+
+def install_scheduled_task(interval_minutes: int) -> None:
+    completed = subprocess.run(
+        [
+            "schtasks",
+            "/Create",
+            "/TN",
+            TASK_NAME,
+            "/TR",
+            scheduled_task_command(),
+            "/SC",
+            "MINUTE",
+            "/MO",
+            str(interval_minutes),
+            "/F",
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="ignore",
+        timeout=30,
+    )
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip()
+        notify_user("Campus Net Guard", f"Failed to install scheduled task:\n{message}")
+        raise SystemExit(message)
+
+    message = f"Installed scheduled task '{TASK_NAME}' every {interval_minutes} minutes."
+    print(message)
+    notify_user("Campus Net Guard", message)
+
+
+def uninstall_scheduled_task() -> None:
+    completed = subprocess.run(
+        ["schtasks", "/Delete", "/TN", TASK_NAME, "/F"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="ignore",
+        timeout=30,
+    )
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip()
+        notify_user("Campus Net Guard", f"Failed to remove scheduled task:\n{message}")
+        raise SystemExit(message)
+
+    message = f"Removed scheduled task '{TASK_NAME}'."
+    print(message)
+    notify_user("Campus Net Guard", message)
 
 
 def setup_logging(config: dict) -> None:
@@ -1041,6 +1109,22 @@ def main() -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="BJTU campus network guard")
+    parser.add_argument(
+        "--install-task",
+        action="store_true",
+        help="Install a Windows scheduled task that runs this program periodically.",
+    )
+    parser.add_argument(
+        "--uninstall-task",
+        action="store_true",
+        help="Remove the Windows scheduled task.",
+    )
+    parser.add_argument(
+        "--interval-minutes",
+        type=int,
+        default=5,
+        help="Scheduled task interval in minutes when used with --install-task.",
+    )
     clash_group = parser.add_mutually_exclusive_group()
     clash_group.add_argument(
         "--enable-clash",
@@ -1063,6 +1147,12 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
+    if args.install_task:
+        install_scheduled_task(args.interval_minutes)
+        raise SystemExit(0)
+    if args.uninstall_task:
+        uninstall_scheduled_task()
+        raise SystemExit(0)
     if args.enable_clash or args.disable_clash:
         cfg = load_config()
         cfg["manage_clash"] = bool(args.enable_clash)
