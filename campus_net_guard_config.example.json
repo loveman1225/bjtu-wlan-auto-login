@@ -1,0 +1,38 @@
+{
+  "target_ssid": "web.wlan.bjtu",
+  "login_url": "http://login.bjtu.edu.cn/",
+  "manage_clash": false,
+  "clash_executable": "C:\\Program Files\\Clash Verge\\clash-verge.exe",
+  "ensure_clash_after_login": true,
+  "clash_restart_marker_file": "clash_was_stopped.marker",
+  "clash_process_names": [
+    "clash-verge",
+    "clash-verge-service",
+    "verge-mihomo"
+  ],
+  "connectivity_checks": [
+    "http://www.msftconnecttest.com/connecttest.txt",
+    "http://connectivitycheck.gstatic.com/generate_204",
+    "http://neverssl.com/"
+  ],
+  "browser_open_wait_seconds": 90,
+  "direct_login": true,
+  "portal_login_url": "http://login.bjtu.edu.cn:801/eportal/?c=ACSetting&a=Login&url=drappall",
+  "portal_login_fields": {
+    "R1": "0",
+    "R2": "0",
+    "R3": "0",
+    "R6": "0",
+    "para": "00",
+    "0MKKey": "123456"
+  },
+  "auto_login": true,
+  "auto_login_page_load_seconds": 4,
+  "browser_dom_login": true,
+  "browser_executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "browser_debug_port": 9223,
+  "browser_user_data_dir": "edge-campus-net-guard-profile",
+  "browser_dom_login_timeout_seconds": 35,
+  "credential_file": "campus_net_guard_credentials.json",
+  "log_file": "campus_net_guard.log"
+}

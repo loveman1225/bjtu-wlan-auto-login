@@ -1,0 +1,9 @@
+campus_net_guard_config.json
+campus_net_guard_credentials.json
+campus_net_guard_credentials.bin
+campus_net_guard.log
+clash_was_stopped.marker
+edge-campus-net-guard-profile/
+__pycache__/
+*.pyc
+a41.js
